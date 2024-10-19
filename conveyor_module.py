@@ -18,8 +18,8 @@ import threading
 pygame.init()
 
 # Screen dimensions
-SCREEN_WIDTH = 1200
-SCREEN_HEIGHT = 1000
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 800
 
 # Port Listening
 CONVEYOR_PORT = 12121
@@ -34,7 +34,7 @@ TEXT_BLACK = (0,0,0)
 CAMERA_AREA_RED = (200,0,0)
 
 #Lists
-BAD_COLORS = [(40,18,5), (70,20,15), (120,80,80)]
+BAD_COLORS = [(40,18,5), (70,20,15), (120,80,80), (255, 228, 196)]
 BAD_SHAPES = [(0,0,0), (1,2,15), (3,5,15), (4,6,20)]
 
 #Object sizes
@@ -43,7 +43,7 @@ ARM_WIDTH = 150
 BELT_WIDTH = 600
 COOKIE_WIDTH = 100
 COOKIE_QUALITY = 100 #between 10 and 100
-ARM_POSITION = (SCREEN_WIDTH // 2) - ARM_WIDTH // 2
+ARM_POSITION = (SCREEN_WIDTH // 2) - ARM_WIDTH // 2+ 130
 DEV_OFF_Y = SCREEN_HEIGHT // 2 - BELT_WIDTH // 2 - 10
 CAM_MARGIN = COOKIE_WIDTH // 4
 CAM_POSITION = COOKIE_WIDTH * 3 + CAM_MARGIN + 10
@@ -96,8 +96,18 @@ class Cookie:
         self.bad = random.randint(0, COOKIE_QUALITY)
         self.isBad = 0<self.bad<4
 
+        self.size_variation = random.choice([-20, 0, 20])  # Smaller, normal, or larger
+        self.width = COOKIE_WIDTH + self.size_variation  # Adjust size
+        
+        if self.isBad:
+            self.size_variation = random.choice([-20, 0, 20])  # Smaller by 20 or larger by 20
+        else:
+            self.size_variation = 0  # No size variation for good cookies
+
+        self.width = COOKIE_WIDTH + self.size_variation  
+
         if self.bad == 1 or self.bad == 3:
-            self.color = BAD_COLORS[random.randint(0,2)]
+            self.color = BAD_COLORS[random.randint(0,3)]
         else:
             self.color = COOKIE_BROWN
 
@@ -105,18 +115,36 @@ class Cookie:
             self.shape_arc = BAD_SHAPES[random.randint(1,3)]
         else:
             self.shape_arc = BAD_SHAPES[0]
-   
+
+        
+    
+    
+
+    
     def draw(self, screen):
         # Draw the full cookie
         pygame.draw.ellipse(screen, 
                             self.color, 
-                            [self.x, self.y, COOKIE_WIDTH, COOKIE_WIDTH])
+                            [self.x, self.y, self.width, self.width])
 
         # Draw the bite (an arc)
         pygame.draw.arc(screen,
                         (0,0,0), 
-                        [self.x, self.y, COOKIE_WIDTH, COOKIE_WIDTH],
+                        [self.x, self.y, self.width, self.width],
                         self.shape_arc[0], self.shape_arc[1], self.shape_arc[2])
+
+        self.draw_chocolate_chips(screen)
+
+    def draw_chocolate_chips(self, screen):
+        # Randomly place chocolate chips on the cookie
+        chip_color = (50, 25, 0)  # Dark brown color for chocolate chips
+        num_chips = random.randint(3, 6)  # Random number of chips
+
+        for _ in range(num_chips):
+            chip_x = random.randint(self.x + 10, self.x + self.width - 10)  # Random position within the cookie
+            chip_y = random.randint(self.y + 10, self.y + self.width - 10)
+            chip_radius = random.randint(3, 6)  # Random chip size
+            pygame.draw.circle(screen, chip_color, (chip_x, chip_y), chip_radius)
 
     def move(self, speed):
         if(self.dead == False) :
@@ -323,11 +351,10 @@ class Simulation:
 
             #draw the status text
             statusMsg.draw(screen, 
-                           f"Bad Cookies: {badCookies} | " + 
-                           f"Rejected Bad Cookies: {arm.rejectedCookies} " +
-                           f"(Efficiency:{(100 * float(arm.rejectedCookies)/float(badCookies)
-                                           if badCookies>0 else 0):.0f}%)",
-                           (0,0))
+               f"Bad Cookies: {badCookies} | " + 
+               f"Rejected Bad Cookies: {arm.rejectedCookies} " +
+               f"(Efficiency:{(100 * float(arm.rejectedCookies)/float(badCookies) if badCookies>0 else 0):.0f}%)",
+               (0,0))
 
             # Remove cookies that have moved off the screen
             cookies = [cookie for cookie in cookies if cookie.x < SCREEN_WIDTH]

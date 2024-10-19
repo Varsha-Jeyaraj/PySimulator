@@ -1,7 +1,7 @@
 '''
 ***********************************************************************
 
-NOTES FOR STUDEENTS
+NOTES FOR STUDENTS
 -------------------
 Change this file appropriately
     1. update the endpoint URL
@@ -18,8 +18,8 @@ import os
 
 class EdgeAnalyzer:
     def __init__(self):
-        self.endPoint = '[CLOUD URL]'
-        self.apiKey = '[API KEY]'
+        self.endPoint = 'http://172.31.197.247:80/image'
+        self.apiKey = '1c182ce138f94ee9bb20e10e9f514547'
         
     def analyzeImage(self, filePath) -> int:
         start_time = time.time()
